@@ -1,16 +1,15 @@
 <script setup lang="ts">
 
 import { onMounted, ref } from 'vue'
-import { fetchQuestions } from '@/services/api' // Import our Messenger
-import type { Question } from '@/types/Question' // Import our Blueprint
+import { fetchQuestions } from '@/services/api' 
+import type { Question } from '@/types/Question' 
 
 const testData = ref<Question[]>([])
 const loading = ref(true)
 const firstQuestion = ref<Question | null>(null)
 
-// This is the Lifecycle Hook: "When the app starts..."
 onMounted(async () => {
-  console.log("🚀 Testing API call for Level 1...")
+  console.log(" Testing API call for Level 1...")
   
   // We call our service
   const data = await fetchQuestions(1) 
@@ -19,7 +18,7 @@ onMounted(async () => {
   firstQuestion.value = data[0] ?? null
   loading.value = false
   
-  console.log("✅ Data Received:", data)
+  console.log(" Data Received:", data)
 })
 </script>
 
@@ -27,7 +26,7 @@ onMounted(async () => {
   <div style="padding: 20px; font-family: sans-serif;">
     <h1>API Connection Test</h1>
     
-    <p v-if="loading">⏳ Fetching questions from Open Trivia DB...</p>
+    <p v-if="loading"> Fetching questions from Open Trivia DB...</p>
     
     <div v-else>
       <p style="color: green; font-weight: bold;">Success! Found {{ testData.length }} questions.</p>
