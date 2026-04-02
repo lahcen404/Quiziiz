@@ -1,36 +1,30 @@
 @import './base.css';
 @import "tailwindcss";
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+/* Tailwind v4 theme tokens used by HomeView utility classes */
+@theme {
+  --color-primary: #d7baff;
+  --color-secondary: #ffb1c2;
+  --color-tertiary: #ffb94c;
+  --color-primary-container: #4a148c;
+  --color-on-primary-container: #b889ff;
+  --color-on-surface: #e5e2e3;
+  --color-on-surface-variant: #cdc3d4;
+  --color-on-tertiary: #442b00;
+  --color-surface-container-low: #1c1b1c;
+  --color-surface-container-highest: #353436;
+  --color-surface-bright: #3a393a;
+  --color-outline-variant: #4a4452;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+/* Remove Vue starter layout constraints so full-page design works */
+html, body, #app {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+body {
+  display: block;
 }
