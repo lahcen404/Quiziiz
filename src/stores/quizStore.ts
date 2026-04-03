@@ -1,9 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Question } from '@/types/Question'
-import { fetchQuestions } from '@/services/api'
+import type { TriviaCategory } from '@/types/TriviaCategory'
+import { fetchCategories, fetchQuestions } from '@/services/api'
+
+export type SetupPhase = 'category' | 'difficulty' | 'playing'
 
 export const useQuizStore = defineStore('quiz', () => {
+  const setupPhase = ref<SetupPhase>('category')
+  const categories = ref<TriviaCategory[]>([])
+  const categoriesLoading = ref(false)
+  const selectedCategoryId = ref<number | null>(null)
+  const selectedDifficulty = ref<'easy' | 'medium' | 'hard' | null>(null)
+
   const questions = ref<Question[]>([])
   const currentQuestionIndex = ref(0)
   const score = ref(0)
@@ -11,11 +20,18 @@ export const useQuizStore = defineStore('quiz', () => {
   const timeLeft = ref(300)
   const currentLevel = ref(1)
   const loading = ref(false)
+  const loadError = ref('')
   const selectedAnswer = ref('')
   const isWin = ref(false)
   const isGameOver = ref(false)
-  const timerInterval = ref<any>(null)
+  const timerInterval = ref<ReturnType<typeof setInterval> | null>(null)
+
   const currentQuestion = computed(() => questions.value[currentQuestionIndex.value] ?? null)
+
+  const selectedCategoryName = computed(() => {
+    if (selectedCategoryId.value == null) return ''
+    return categories.value.find((c) => c.id === selectedCategoryId.value)?.name ?? ''
+  })
 
   const formattedTime = computed(() => {
     const min = Math.floor(timeLeft.value / 60)
@@ -23,8 +39,37 @@ export const useQuizStore = defineStore('quiz', () => {
     return `${min}:${sec < 10 ? '0' : ''}${sec}`
   })
 
+  async function loadCategoriesIfNeeded() {
+    if (categories.value.length > 0) return
+    categoriesLoading.value = true
+    try {
+      categories.value = await fetchCategories()
+    } finally {
+      categoriesLoading.value = false
+    }
+  }
+
+  function pickCategory(id: number) {
+    selectedCategoryId.value = id
+    selectedDifficulty.value = null
+    setupPhase.value = 'difficulty'
+  }
+
+  function pickDifficulty(d: 'easy' | 'medium' | 'hard') {
+    selectedDifficulty.value = d
+  }
+
+  function goBackToCategory() {
+    setupPhase.value = 'category'
+    selectedDifficulty.value = null
+  }
+
+  function goBackToDifficulty() {
+    setupPhase.value = 'difficulty'
+  }
+
   function startTimer() {
-    if (timerInterval.value) return // if already running, do nothing
+    if (timerInterval.value) return
 
     timerInterval.value = setInterval(() => {
       if (timeLeft.value > 0) {
@@ -35,12 +80,33 @@ export const useQuizStore = defineStore('quiz', () => {
     }, 1000)
   }
 
-  async function loadQuestions() {
-    loading.value = true
-    try {
-      const data = await fetchQuestions(currentLevel.value)
+  function stopTimer() {
+    if (timerInterval.value) {
+      clearInterval(timerInterval.value)
+      timerInterval.value = null
+    }
+  }
 
-      // miiix correct with incorrect answers and mix them
+  async function loadQuestions() {
+    if (selectedCategoryId.value == null || selectedDifficulty.value == null) {
+      loadError.value = 'Pick a category and difficulty first.'
+      return
+    }
+    loading.value = true
+    loadError.value = ''
+    try {
+      const data = await fetchQuestions({
+        amount: 5,
+        categoryId: selectedCategoryId.value,
+        difficulty: selectedDifficulty.value,
+      })
+
+      if (!data.length) {
+        loadError.value = 'No questions returned. Try another category or difficulty.'
+        questions.value = []
+        return
+      }
+
       questions.value = data.map((q) => {
         const choices = [...q.incorrect_answers, q.correct_answer]
         return {
@@ -51,18 +117,40 @@ export const useQuizStore = defineStore('quiz', () => {
       currentQuestionIndex.value = 0
       selectedAnswer.value = ''
       levelScore.value = 0
-    } catch (error) {
-      console.error('Failed to load questions', error)
+    } catch (e) {
+      console.error('Failed to load questions', e)
+      loadError.value = 'Failed to load questions.'
+      questions.value = []
     } finally {
       loading.value = false
     }
   }
 
+  /** Start the timed quiz after category + difficulty are chosen */
+  async function beginQuizSession() {
+    if (selectedCategoryId.value == null || selectedDifficulty.value == null) return
+
+    questions.value = []
+    currentQuestionIndex.value = 0
+    score.value = 0
+    levelScore.value = 0
+    timeLeft.value = 300
+    currentLevel.value = 1
+    selectedAnswer.value = ''
+    isWin.value = false
+    isGameOver.value = false
+    loadError.value = ''
+    stopTimer()
+
+    setupPhase.value = 'playing'
+    startTimer()
+    await loadQuestions()
+  }
+
   function endGame(win = false) {
     isWin.value = win
     isGameOver.value = true
-    if (timerInterval.value) clearInterval(timerInterval.value)
-    timerInterval.value = null
+    stopTimer()
   }
 
   function submitAnswer(answer: string) {
@@ -102,13 +190,11 @@ export const useQuizStore = defineStore('quiz', () => {
     await loadQuestions()
   }
 
-  async function startGame() {
-    resetQuiz()
-    startTimer()
-    await loadQuestions()
-  }
-
+  /** Full reset (e.g. home / play again) — back to category picker */
   function resetQuiz() {
+    setupPhase.value = 'category'
+    selectedCategoryId.value = null
+    selectedDifficulty.value = null
     questions.value = []
     currentQuestionIndex.value = 0
     score.value = 0
@@ -116,14 +202,21 @@ export const useQuizStore = defineStore('quiz', () => {
     timeLeft.value = 300
     currentLevel.value = 1
     loading.value = false
+    loadError.value = ''
     selectedAnswer.value = ''
     isWin.value = false
     isGameOver.value = false
-    if (timerInterval.value) clearInterval(timerInterval.value)
-    timerInterval.value = null
+    stopTimer()
   }
 
   return {
+    setupPhase,
+    categories,
+    categoriesLoading,
+    selectedCategoryId,
+    selectedDifficulty,
+    selectedCategoryName,
+    loadError,
     questions,
     currentQuestionIndex,
     currentQuestion,
@@ -136,7 +229,12 @@ export const useQuizStore = defineStore('quiz', () => {
     isWin,
     isGameOver,
     formattedTime,
-    startGame,
+    loadCategoriesIfNeeded,
+    pickCategory,
+    pickDifficulty,
+    goBackToCategory,
+    goBackToDifficulty,
+    beginQuizSession,
     loadQuestions,
     startTimer,
     submitAnswer,

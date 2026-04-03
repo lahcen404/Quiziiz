@@ -7,8 +7,8 @@ const quizStore = useQuizStore()
 
 const currentYear = new Date().getFullYear()
 
-async function startQuiz() {
-  await quizStore.startGame()
+function startQuiz() {
+  quizStore.resetQuiz()
   router.push('/quiz')
 }
 </script>

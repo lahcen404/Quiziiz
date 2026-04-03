@@ -1,0 +1,1 @@
+import{l as e,m as t,r as n,s as r}from"./index-DA3FoFim.js";var i={},a={class:`about`};function o(n,i){return t(),e(`div`,a,[...i[0]||=[r(`h1`,null,`This is an about page`,-1)]])}var s=n(i,[[`render`,o]]);export{s as default};
