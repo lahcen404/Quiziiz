@@ -1,42 +1,31 @@
-# quiziiz
+# 🎯 Quiziiz
 
-This template should help get you started developing with Vue 3 in Vite.
+Quiziiz is a modern and interactive Quiz/QCM application built with Vue.js 3 and TypeScript.  
+The application allows users to play through 3 levels of quiz questions fetched dynamically from a REST API while managing score, timer, and game progression.
 
-## Recommended IDE Setup
+## 🚀 Features
+- 3 quiz levels
+- Dynamic questions from API
+- Real-time scoring system
+- 5 minutes global timer
+- Game Over / Win system
+- Responsive design
+- Progress bar
+- LocalStorage support
+- Clean UI with Tailwind CSS
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 📊 Game Rules
+- Each level contains 5 questions
+- Each correct answer = 20 points
 
-## Recommended Browser Setup
+### Validation
+- Level 1 → 40/100 minimum
+- Level 2 → 60/100 minimum
+- Level 3 → 80/100 minimum
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+## 🛠️ Technologies
+- Vue.js 3 (Composition API)
+- TypeScript
+- Axios / Fetch API
+- Tailwind CSS
+- Pinia
